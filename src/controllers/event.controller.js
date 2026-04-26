@@ -1,4 +1,4 @@
-import { Event, User, Application, Profile } from '../models/index.js';
+import { Event, User, Application, Profile, SavedEvent } from '../models/index.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 import { sendBulkEmail } from '../services/email.service.js';
 import { Op } from 'sequelize';
@@ -179,10 +179,12 @@ export const updateEvent = async (req, res, next) => {
       return errorResponse(res, 'You are not authorized to update this event', 403);
     }
 
-    // Update event
-    await event.update(req.body);
+    await event.update({
+      ...req.body,
+      approval_status: 'PENDING_REVIEW'
+    });
 
-    return successResponse(res, { event }, 'Event updated successfully');
+    return successResponse(res, { event }, 'Event updated successfully and sent for admin review');
   } catch (error) {
     next(error);
   }
@@ -210,6 +212,126 @@ export const deleteEvent = async (req, res, next) => {
     await event.destroy();
 
     return successResponse(res, null, 'Event deleted successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Save an approved event for later
+ * POST /api/events/:id/save
+ */
+export const saveEvent = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const event = await Event.findOne({
+      where: {
+        id,
+        approval_status: 'APPROVED'
+      }
+    });
+
+    if (!event) {
+      return errorResponse(res, 'Event not found or not yet approved', 404);
+    }
+
+    const [savedEvent, created] = await SavedEvent.findOrCreate({
+      where: {
+        user_id: req.user.id,
+        event_id: id
+      },
+      defaults: {
+        user_id: req.user.id,
+        event_id: id
+      }
+    });
+
+    return successResponse(
+      res,
+      { saved_event: savedEvent, already_saved: !created },
+      created ? 'Event saved successfully' : 'Event was already saved'
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Remove an event from saved events
+ * DELETE /api/events/:id/save
+ */
+export const unsaveEvent = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const deletedCount = await SavedEvent.destroy({
+      where: {
+        user_id: req.user.id,
+        event_id: id
+      }
+    });
+
+    if (!deletedCount) {
+      return errorResponse(res, 'Saved event not found', 404);
+    }
+
+    return successResponse(res, null, 'Saved event removed successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get current user's saved approved events
+ * GET /api/events/saved
+ */
+export const getSavedEvents = async (req, res, next) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    const offset = (page - 1) * limit;
+
+    const { count, rows } = await SavedEvent.findAndCountAll({
+      where: {
+        user_id: req.user.id
+      },
+      include: [
+        {
+          model: Event,
+          as: 'event',
+          where: {
+            approval_status: 'APPROVED'
+          },
+          include: [
+            {
+              model: User,
+              as: 'organizer',
+              attributes: ['id', 'full_name', 'email']
+            }
+          ]
+        }
+      ],
+      order: [['created_at', 'DESC']],
+      limit: parseInt(limit),
+      offset: parseInt(offset)
+    });
+
+    const events = rows
+      .map((item) => item.event)
+      .filter(Boolean)
+      .map((event) => ({
+        ...event.toJSON(),
+        is_saved: true
+      }));
+
+    return successResponse(res, {
+      events,
+      pagination: {
+        total: count,
+        page: parseInt(page),
+        pages: Math.ceil(count / limit)
+      }
+    });
   } catch (error) {
     next(error);
   }
@@ -288,5 +410,8 @@ export default {
   getMyEvents,
   updateEvent,
   deleteEvent,
+  saveEvent,
+  unsaveEvent,
+  getSavedEvents,
   emailApplicants
 };

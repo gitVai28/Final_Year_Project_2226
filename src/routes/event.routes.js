@@ -6,6 +6,9 @@ import {
   getMyEvents,
   updateEvent,
   deleteEvent,
+  getSavedEvents,
+  saveEvent,
+  unsaveEvent,
   emailApplicants
 } from '../controllers/event.controller.js';
 import { getEventApplications } from '../controllers/application.controller.js';
@@ -25,6 +28,13 @@ const router = express.Router();
  * @access  Public
  */
 router.get('/', getAllEvents);
+
+/**
+ * @route   GET /api/events/saved
+ * @desc    Get current user's saved events
+ * @access  Private
+ */
+router.get('/saved', authenticate, getSavedEvents);
 
 /**
  * @route   GET /api/events/my-events
@@ -67,6 +77,20 @@ router.put('/:id', authenticate, validate(updateEventSchema), updateEvent);
  * @access  Private (Owner only)
  */
 router.delete('/:id', authenticate, deleteEvent);
+
+/**
+ * @route   POST /api/events/:id/save
+ * @desc    Save an event
+ * @access  Private
+ */
+router.post('/:id/save', authenticate, saveEvent);
+
+/**
+ * @route   DELETE /api/events/:id/save
+ * @desc    Remove an event from saved list
+ * @access  Private
+ */
+router.delete('/:id/save', authenticate, unsaveEvent);
 
 /**
  * @route   POST /api/events/:id/email-applicants

@@ -7,6 +7,7 @@ import path from 'path';
 import authRoutes from './src/routes/auth.routes.js';
 import adminRoutes from './src/routes/admin.routes.js';
 import eventRoutes from './src/routes/event.routes.js';
+import eventDraftRoutes from './src/routes/event-draft.routes.js';
 import applicationRoutes from './src/routes/application.routes.js';
 import studentRoutes from './src/routes/student.routes.js';
 import profileRoutes from './src/routes/profile.routes.js';
@@ -95,6 +96,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/event-drafts', eventDraftRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/profile', profileRoutes);

@@ -44,6 +44,19 @@ export const updateEventSchema = Joi.object({
 }).min(1);
 
 /**
+ * Draft Event Validation Schema
+ */
+export const draftEventSchema = Joi.object({
+  title: Joi.string().min(3).max(200),
+  description: Joi.string().min(10),
+  event_name: Joi.string().min(3).max(200),
+  required_skills: Joi.array().items(Joi.string()),
+  category: Joi.string().valid('TECH', 'CULTURAL', 'SPORTS'),
+  number_of_positions: Joi.number().integer().min(1),
+  deadline: Joi.date().greater('now')
+}).min(1);
+
+/**
  * Bulk Email Schema
  */
 export const bulkEmailSchema = Joi.object({
@@ -55,5 +68,6 @@ export const bulkEmailSchema = Joi.object({
 export default {
   createEventSchema,
   updateEventSchema,
+  draftEventSchema,
   bulkEmailSchema
 };
