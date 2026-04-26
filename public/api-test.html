@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CampusConnect API Tester</title>
+  <style>
+    :root {
+      --bg: #f4efe7;
+      --panel: rgba(255, 250, 244, 0.92);
+      --panel-strong: #fffaf4;
+      --line: #dfd1bd;
+      --text: #1f1b16;
+      --muted: #6d6258;
+      --accent: #0d8a72;
+      --accent-dark: #086956;
+      --warn: #c75a2c;
+      --ok: #1f7a46;
+      --shadow: 0 18px 45px rgba(53, 38, 22, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(13, 138, 114, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(199, 90, 44, 0.12), transparent 30%),
+        linear-gradient(180deg, #f7f1e8 0%, #efe5d6 100%);
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
+
+    .hero {
+      display: grid;
+      gap: 18px;
+      margin-bottom: 24px;
+      padding: 24px;
+      border: 1px solid rgba(120, 96, 67, 0.18);
+      background: rgba(255, 249, 241, 0.86);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 920px;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+
+    .control {
+      display: grid;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    input,
+    textarea,
+    select,
+    button {
+      font: inherit;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: var(--panel-strong);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 8px;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: 2px solid rgba(13, 138, 114, 0.28);
+      border-color: var(--accent);
+    }
+
+    textarea {
+      min-height: 116px;
+      resize: vertical;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform 120ms ease, background 120ms ease;
+    }
+
+    button:hover {
+      background: var(--accent-dark);
+      transform: translateY(-1px);
+    }
+
+    button.secondary {
+      background: #e8dccb;
+      color: var(--text);
+    }
+
+    button.secondary:hover {
+      background: #dbcbb7;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 12px;
+      margin: 18px 0 20px;
+    }
+
+    .search-row input {
+      max-width: 420px;
+    }
+
+    .section {
+      margin-top: 26px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 1.3rem;
+    }
+
+    .section-head span {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      display: grid;
+      gap: 12px;
+      background: var(--panel);
+      border: 1px solid rgba(120, 96, 67, 0.16);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .method {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 68px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .GET { background: #237a4c; }
+    .POST { background: #0c7b93; }
+    .PUT { background: #a25f17; }
+    .PATCH { background: #8e4ec6; }
+    .DELETE { background: #b13b3b; }
+
+    .path {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.94rem;
+      word-break: break-word;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.93rem;
+      line-height: 1.45;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .response {
+      background: #1c1a18;
+      color: #f6f0e8;
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 150px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow: auto;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+
+    .status {
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .status.ok {
+      color: var(--ok);
+    }
+
+    .status.fail {
+      color: var(--warn);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 960px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      .mini-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .search-row {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div>
+        <h1>CampusConnect API Tester</h1>
+        <p>Use this page to hit every backend endpoint from one place. Set your base URL, paste a bearer token when needed, edit any path or JSON payload, and watch the response come back without leaving the browser.</p>
+      </div>
+
+      <div class="controls">
+        <div class="control">
+          <label for="baseUrl">Base URL</label>
+          <input id="baseUrl" type="text" />
+        </div>
+        <div class="control">
+          <label for="token">Bearer Token</label>
+          <input id="token" type="text" placeholder="Paste JWT here for private routes" />
+        </div>
+        <div class="control">
+          <label for="search">Search Endpoints</label>
+          <input id="search" type="text" placeholder="Filter by route, method, or section" />
+        </div>
+        <div class="toolbar">
+          <button id="saveSettings" type="button">Save Settings</button>
+          <button id="clearToken" class="secondary" type="button">Clear Token</button>
+          <button id="collapseAll" class="secondary" type="button">Collapse All</button>
+        </div>
+      </div>
+      <p class="hint">Best result: run your backend and open <code>http://localhost:5000/tools/api-test.html</code>. If you use VS Code Live Preview, make sure the Base URL stays pointed at your API server.</p>
+    </section>
+
+    <div id="sections"></div>
+  </div>
+
+  <script>
+    const endpointSections = [
+      {
+        title: "System",
+        endpoints: [
+          { method: "GET", path: "/", description: "API root health message.", needsAuth: false },
+          { method: "GET", path: "/health", description: "Service health check.", needsAuth: false }
+        ]
+      },
+      {
+        title: "Auth",
+        endpoints: [
+          {
+            method: "POST",
+            path: "/api/auth/register",
+            description: "Register a new user.",
+            needsAuth: false,
+            body: {
+              full_name: "Test Student",
+              email: "student@example.com",
+              password: "secret123",
+              role: "STUDENT"
+            }
+          },
+          {
+            method: "POST",
+            path: "/api/auth/verify-email",
+            description: "Verify a user email with OTP.",
+            needsAuth: false,
+            body: {
+              email: "student@example.com",
+              otp: "123456"
+            }
+          },
+          {
+            method: "POST",
+            path: "/api/auth/resend-otp",
+            description: "Resend verification OTP.",
+            needsAuth: false,
+            body: {
+              email: "student@example.com"
+            }
+          },
+          {
+            method: "POST",
+            path: "/api/auth/login",
+            description: "Login as student or regular user.",
+            needsAuth: false,
+            body: {
+              email: "student@example.com",
+              password: "secret123"
+            }
+          },
+          {
+            method: "GET",
+            path: "/api/auth/me",
+            description: "Get the current authenticated user.",
+            needsAuth: true
+          }
+        ]
+      },
+      {
+        title: "Admin",
+        endpoints: [
+          {
+            method: "POST",
+            path: "/api/admin/register",
+            description: "Register an admin using the admin secret.",
+            needsAuth: false,
+            body: {
+              full_name: "Campus Admin",
+              email: "admin@example.com",
+              password: "secret123",
+              secret_key: "YOUR_ADMIN_SECRET"
+            }
+          },
+          {
+            method: "POST",
+            path: "/api/admin/login",
+            description: "Login as an admin and receive a token.",
+            needsAuth: false,
+            body: {
+              email: "admin@example.com",
+              password: "secret123"
+            }
+          },
+          {
+            method: "GET",
+            path: "/api/admin/events/pending",
+            description: "List pending events for admin review.",
+            needsAuth: true
+          },
+          {
+            method: "GET",
+            path: "/api/admin/events",
+            description: "List all events, optionally filtered by approval status.",
+            needsAuth: true,
+            query: "approval_status=PENDING_REVIEW&page=1&limit=10"
+          },
+          {
+            method: "PATCH",
+            path: "/api/admin/events/:id/approve",
+            description: "Approve a pending event.",
+            needsAuth: true,
+            pathParams: { id: "event-id-here" }
+          },
+          {
+            method: "PATCH",
+            path: "/api/admin/events/:id/reject",
+            description: "Reject a pending event.",
+            needsAuth: true,
+            pathParams: { id: "event-id-here" },
+            body: {
+              reason: "Does not meet event requirements"
+            }
+          }
+        ]
+      },
+      {
+        title: "Events",
+        endpoints: [
+          {
+            method: "GET",
+            path: "/api/events",
+            description: "Get all approved events.",
+            needsAuth: false
+          },
+          {
+            method: "GET",
+            path: "/api/events/my-events",
+            description: "Get events created by the logged-in user.",
+            needsAuth: true
+          },
+          {
+            method: "GET",
+            path: "/api/events/:id",
+            description: "Get one event by ID.",
+            needsAuth: false,
+            pathParams: { id: "event-id-here" }
+          },
+          {
+            method: "GET",
+            path: "/api/events/:eventId/applications",
+            description: "Get applications for a specific event.",
+            needsAuth: true,
+            pathParams: { eventId: "event-id-here" }
+          },
+          {
+            method: "POST",
+            path: "/api/events",
+            description: "Create a new event.",
+            needsAuth: true,
+            body: {
+              title: "Hackathon 2026",
+              description: "A student event for building practical projects together.",
+              event_name: "Campus Hackathon",
+              required_skills: ["JavaScript", "Node.js"],
+              category: "TECH",
+              number_of_positions: 25,
+              deadline: "2026-12-31T18:30:00.000Z"
+            }
+          },
+          {
+            method: "PUT",
+            path: "/api/events/:id",
+            description: "Update an existing event.",
+            needsAuth: true,
+            pathParams: { id: "event-id-here" },
+            body: {
+              title: "Hackathon 2026 Updated",
+              number_of_positions: 30,
+              status: "OPEN"
+            }
+          },
+          {
+            method: "DELETE",
+            path: "/api/events/:id",
+            description: "Delete an event owned by the logged-in user.",
+            needsAuth: true,
+            pathParams: { id: "event-id-here" }
+          },
+          {
+            method: "POST",
+            path: "/api/events/:id/email-applicants",
+            description: "Send a bulk email to applicants.",
+            needsAuth: true,
+            pathParams: { id: "event-id-here" },
+            body: {
+              subject: "Event update",
+              message: "Thanks for applying. We will share next steps shortly.",
+              target: "ALL"
+            }
+          }
+        ]
+      },
+      {
+        title: "Applications",
+        endpoints: [
+          {
+            method: "POST",
+            path: "/api/applications",
+            description: "Apply to an event as a student.",
+            needsAuth: true,
+            body: {
+              event_id: "event-uuid-here",
+              message: "I would love to participate in this event."
+            }
+          },
+          {
+            method: "GET",
+            path: "/api/applications/my-applications",
+            description: "Get applications created by the current user.",
+            needsAuth: true
+          },
+          {
+            method: "GET",
+            path: "/api/applications/:id",
+            description: "Get a single application by ID.",
+            needsAuth: true,
+            pathParams: { id: "application-id-here" }
+          },
+          {
+            method: "PATCH",
+            path: "/api/applications/:id/status",
+            description: "Update an application status as the organizer.",
+            needsAuth: true,
+            pathParams: { id: "application-id-here" },
+            body: {
+              status: "SHORTLISTED"
+            }
+          }
+        ]
+      },
+      {
+        title: "Students",
+        endpoints: [
+          {
+            method: "GET",
+            path: "/api/students/search",
+            description: "Search students with query params.",
+            needsAuth: true,
+            query: "department=CSE&year=3&skill=Node.js"
+          },
+          {
+            method: "GET",
+            path: "/api/students/:id",
+            description: "Get a student profile by ID.",
+            needsAuth: true,
+            pathParams: { id: "student-id-here" }
+          }
+        ]
+      },
+      {
+        title: "Profile",
+        endpoints: [
+          {
+            method: "GET",
+            path: "/api/profile",
+            description: "Get the logged-in user's profile.",
+            needsAuth: true
+          },
+          {
+            method: "PUT",
+            path: "/api/profile",
+            description: "Update the logged-in user's profile.",
+            needsAuth: true,
+            body: {
+              bio: "Backend student developer building event platforms.",
+              department: "CSE",
+              year: 3,
+              profile_picture: "https://example.com/profile.jpg",
+              skills: ["Node.js", "Express", "SQL"],
+              interests: ["Hackathons", "Open Source"]
+            }
+          },
+          {
+            method: "GET",
+            path: "/api/profile/experiences",
+            description: "Get profile experiences for the current user.",
+            needsAuth: true
+          }
+        ]
+      },
+      {
+        title: "Notifications",
+        endpoints: [
+          {
+            method: "GET",
+            path: "/api/notifications",
+            description: "List notifications for the current user.",
+            needsAuth: true
+          },
+          {
+            method: "PATCH",
+            path: "/api/notifications/read-all",
+            description: "Mark all notifications as read.",
+            needsAuth: true
+          },
+          {
+            method: "PATCH",
+            path: "/api/notifications/:id/read",
+            description: "Mark a single notification as read.",
+            needsAuth: true,
+            pathParams: { id: "notification-id-here" }
+          },
+          {
+            method: "DELETE",
+            path: "/api/notifications/:id",
+            description: "Delete a notification by ID.",
+            needsAuth: true,
+            pathParams: { id: "notification-id-here" }
+          }
+        ]
+      }
+    ];
+
+    const settings = {
+      baseUrl: document.getElementById("baseUrl"),
+      token: document.getElementById("token"),
+      search: document.getElementById("search")
+    };
+
+    const sectionsRoot = document.getElementById("sections");
+    const savedBaseUrl = localStorage.getItem("apiTester.baseUrl");
+    const savedToken = localStorage.getItem("apiTester.token");
+
+    function detectDefaultBaseUrl() {
+      const protocol = window.location.protocol;
+      const host = window.location.host;
+
+      if ((protocol === "http:" || protocol === "https:") &&
+          (host.includes("localhost") || host.includes("127.0.0.1")) &&
+          window.location.pathname.startsWith("/tools/")) {
+        return window.location.origin;
+      }
+
+      return "http://localhost:5000";
+    }
+
+    settings.baseUrl.value = savedBaseUrl || detectDefaultBaseUrl();
+    settings.token.value = savedToken || "";
+
+    document.getElementById("saveSettings").addEventListener("click", () => {
+      localStorage.setItem("apiTester.baseUrl", settings.baseUrl.value.trim());
+      localStorage.setItem("apiTester.token", settings.token.value.trim());
+      alert("Settings saved in this browser.");
+    });
+
+    document.getElementById("clearToken").addEventListener("click", () => {
+      settings.token.value = "";
+      localStorage.removeItem("apiTester.token");
+    });
+
+    document.getElementById("collapseAll").addEventListener("click", () => {
+      document.querySelectorAll("details").forEach((detail) => {
+        detail.open = false;
+      });
+    });
+
+    settings.search.addEventListener("input", renderSections);
+
+    function formatJson(value) {
+      return JSON.stringify(value ?? {}, null, 2);
+    }
+
+    function buildResolvedPath(rawPath, params) {
+      let nextPath = rawPath;
+      Object.entries(params).forEach(([key, value]) => {
+        nextPath = nextPath.replace(`:${key}`, value || `:${key}`);
+      });
+      return nextPath;
+    }
+
+    function createCard(endpoint, index, sectionTitle) {
+      const card = document.createElement("article");
+      card.className = "card";
+      card.dataset.search = `${sectionTitle} ${endpoint.method} ${endpoint.path} ${endpoint.description}`.toLowerCase();
+
+      const paramFields = Object.entries(endpoint.pathParams || {})
+        .map(([key, value]) => `
+          <div class="control">
+            <label>${key}</label>
+            <input type="text" data-param="${key}" value="${value}" />
+          </div>
+        `)
+        .join("");
+
+      const queryValue = endpoint.query || "";
+      const bodyValue = endpoint.body ? formatJson(endpoint.body) : "";
+      const showBody = ["POST", "PUT", "PATCH"].includes(endpoint.method);
+
+      card.innerHTML = `
+        <div class="meta">
+          <span class="method ${endpoint.method}">${endpoint.method}</span>
+          <strong>${sectionTitle}</strong>
+          <span class="muted">${endpoint.needsAuth ? "Private" : "Public"}</span>
+        </div>
+        <div class="path">${endpoint.path}</div>
+        <div class="hint">${endpoint.description}</div>
+        ${paramFields ? `<div class="mini-grid">${paramFields}</div>` : ""}
+        <div class="control">
+          <label>Query String</label>
+          <input type="text" data-query value="${queryValue}" placeholder="page=1&limit=10" />
+        </div>
+        ${showBody ? `
+          <div class="control">
+            <label>JSON Body</label>
+            <textarea data-body placeholder="{ }">${bodyValue}</textarea>
+          </div>
+        ` : ""}
+        <div class="toolbar">
+          <button type="button" data-send>Send Request</button>
+          <button type="button" class="secondary" data-copy>Copy URL</button>
+          ${endpoint.needsAuth ? `<span class="muted">Uses global bearer token</span>` : ""}
+        </div>
+        <div class="status muted" data-status>Ready</div>
+        <pre class="response" data-response>// Response appears here</pre>
+      `;
+
+      const statusNode = card.querySelector("[data-status]");
+      const responseNode = card.querySelector("[data-response]");
+
+      card.querySelector("[data-copy]").addEventListener("click", async () => {
+        const builtUrl = getRequestUrl(card, endpoint);
+        await navigator.clipboard.writeText(builtUrl);
+        statusNode.textContent = "Copied request URL.";
+        statusNode.className = "status ok";
+      });
+
+      card.querySelector("[data-send]").addEventListener("click", async () => {
+        const baseUrl = settings.baseUrl.value.trim().replace(/\/$/, "");
+        if (!baseUrl) {
+          statusNode.textContent = "Base URL is required.";
+          statusNode.className = "status fail";
+          return;
+        }
+
+        const url = getRequestUrl(card, endpoint);
+        const headers = { Accept: "application/json" };
+        const token = settings.token.value.trim();
+
+        if (endpoint.needsAuth && token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+
+        let body;
+        if (showBody) {
+          const rawBody = card.querySelector("[data-body]").value.trim();
+          if (rawBody) {
+            try {
+              JSON.parse(rawBody);
+              headers["Content-Type"] = "application/json";
+              body = rawBody;
+            } catch (error) {
+              statusNode.textContent = `Invalid JSON body: ${error.message}`;
+              statusNode.className = "status fail";
+              return;
+            }
+          }
+        }
+
+        statusNode.textContent = "Sending request...";
+        statusNode.className = "status muted";
+        responseNode.textContent = "";
+
+        try {
+          const response = await fetch(url, {
+            method: endpoint.method,
+            headers,
+            body
+          });
+
+          const rawText = await response.text();
+          let parsed;
+
+          try {
+            parsed = rawText ? JSON.parse(rawText) : {};
+          } catch {
+            parsed = rawText;
+          }
+
+          const pretty = typeof parsed === "string" ? parsed : formatJson(parsed);
+          responseNode.textContent = pretty || "// Empty response";
+          statusNode.textContent = `${response.status} ${response.statusText}`;
+          statusNode.className = response.ok ? "status ok" : "status fail";
+
+          if (response.ok && parsed && parsed.data && parsed.data.token) {
+            settings.token.value = parsed.data.token;
+            localStorage.setItem("apiTester.token", parsed.data.token);
+          }
+        } catch (error) {
+          responseNode.textContent = error.stack || error.message;
+          statusNode.textContent = "Request failed";
+          statusNode.className = "status fail";
+        }
+      });
+
+      return card;
+    }
+
+    function getRequestUrl(card, endpoint) {
+      const baseUrl = settings.baseUrl.value.trim().replace(/\/$/, "");
+      const params = {};
+
+      card.querySelectorAll("[data-param]").forEach((input) => {
+        params[input.dataset.param] = input.value.trim();
+      });
+
+      const query = card.querySelector("[data-query]").value.trim();
+      const resolvedPath = buildResolvedPath(endpoint.path, params);
+      return `${baseUrl}${resolvedPath}${query ? `?${query}` : ""}`;
+    }
+
+    function renderSections() {
+      const term = settings.search.value.trim().toLowerCase();
+      sectionsRoot.innerHTML = "";
+
+      endpointSections.forEach((section, sectionIndex) => {
+        const cards = section.endpoints
+          .map((endpoint, endpointIndex) => createCard(endpoint, endpointIndex, section.title))
+          .filter((card) => !term || card.dataset.search.includes(term));
+
+        if (!cards.length) {
+          return;
+        }
+
+        const wrapper = document.createElement("section");
+        wrapper.className = "section";
+
+        const details = document.createElement("details");
+        details.open = sectionIndex < 2;
+
+        details.innerHTML = `
+          <summary class="section-head">
+            <h2>${section.title}</h2>
+            <span>${cards.length} endpoint${cards.length > 1 ? "s" : ""}</span>
+          </summary>
+        `;
+
+        const grid = document.createElement("div");
+        grid.className = "grid";
+        cards.forEach((card) => grid.appendChild(card));
+
+        details.appendChild(grid);
+        wrapper.appendChild(details);
+        sectionsRoot.appendChild(wrapper);
+      });
+    }
+
+    renderSections();
+  </script>
+</body>
+</html>
