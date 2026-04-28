@@ -42,6 +42,18 @@ const Application = sequelize.define('Application', {
     {
       unique: true,
       fields: ['student_id', 'event_id']
+    },
+    {
+      fields: ['status']
+    },
+    {
+      fields: ['student_id']
+    },
+    {
+      fields: ['event_id']
+    },
+    {
+      fields: ['created_at']
     }
   ]
 });

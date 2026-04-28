@@ -47,7 +47,18 @@ const Profile = sequelize.define('Profile', {
 }, {
   tableName: 'profiles',
   timestamps: true,
-  underscored: true
+  underscored: true,
+  indexes: [
+    {
+      fields: ['user_id']
+    },
+    {
+      fields: ['department']
+    },
+    {
+      fields: ['year']
+    }
+  ]
 });
 
 export default Profile;

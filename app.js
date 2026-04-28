@@ -12,6 +12,7 @@ import applicationRoutes from './src/routes/application.routes.js';
 import studentRoutes from './src/routes/student.routes.js';
 import profileRoutes from './src/routes/profile.routes.js';
 import notificationRoutes from './src/routes/notification.routes.js';
+import dashboardRoutes from './src/routes/dashboard.routes.js';
 
 // Import middleware
 import { errorHandler, notFound } from './src/middleware/error.middleware.js';
@@ -101,6 +102,7 @@ app.use('/api/applications', applicationRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // ========== ERROR HANDLING ==========
 
