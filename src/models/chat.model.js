@@ -41,7 +41,21 @@ const Chat = sequelize.define('Chat', {
 }, {
   tableName: 'chats',
   timestamps: true,
-  underscored: true
+  underscored: true,
+  indexes: [
+    {
+      fields: ['event_id']
+    },
+    {
+      fields: ['sender_id']
+    },
+    {
+      fields: ['receiver_id']
+    },
+    {
+      fields: ['created_at']
+    }
+  ]
 });
 
 export default Chat;

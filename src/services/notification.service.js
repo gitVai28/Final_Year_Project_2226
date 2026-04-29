@@ -5,12 +5,12 @@ import { Notification } from '../models/index.js';
  */
 export const createNotification = async (userId, message) => {
   try {
-    await Notification.create({
+    const notification = await Notification.create({
       user_id: userId,
       message,
       is_read: false
     });
-    return { success: true };
+    return { success: true, notification };
   } catch (error) {
     console.error('Error creating notification:', error);
     return { success: false };
@@ -71,9 +71,16 @@ export const notifyEventStatus = async (organizerId, eventTitle, approvalStatus)
 /**
  * Notify on new message
  */
-export const notifyNewMessage = async (receiverId, senderName) => {
-  const message = `You have a new message from ${senderName}.`;
-  await createNotification(receiverId, message);
+export const notifyNewMessage = async (receiverId, senderName, eventTitle = null, io = null) => {
+  const message = eventTitle
+    ? `You have a new message from ${senderName} about "${eventTitle}".`
+    : `You have a new message from ${senderName}.`;
+
+  const result = await createNotification(receiverId, message);
+
+  if (io && result.success) {
+    io.to(receiverId).emit('notification_received', result.notification);
+  }
 };
 
 export default {

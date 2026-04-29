@@ -1,7 +1,45 @@
-import { Chat, Application, User } from '../models/index.js';
+import { Chat, Application, User, Event } from '../models/index.js';
 import { verifyToken } from '../utils/jwt.js';
 import { notifyNewMessage } from '../services/notification.service.js';
 import { Op } from 'sequelize';
+
+const CHAT_ELIGIBLE_STATUSES = ['PENDING', 'SHORTLISTED', 'SELECTED', 'COMPLETED'];
+
+const canUsersChatForEvent = async (senderId, receiverId, eventId) => {
+  const event = await Event.findByPk(eventId, {
+    attributes: ['id', 'title', 'created_by']
+  });
+
+  if (!event) {
+    return { allowed: false, message: 'Event not found' };
+  }
+
+  const senderIsOrganizer = event.created_by === senderId;
+  const receiverIsOrganizer = event.created_by === receiverId;
+
+  if (senderIsOrganizer === receiverIsOrganizer) {
+    return { allowed: false, message: 'Chat is only allowed between organizer and applicants' };
+  }
+
+  const applicantId = senderIsOrganizer ? receiverId : senderId;
+
+  const application = await Application.findOne({
+    where: {
+      student_id: applicantId,
+      event_id: eventId,
+      status: {
+        [Op.in]: CHAT_ELIGIBLE_STATUSES
+      }
+    },
+    attributes: ['id']
+  });
+
+  if (!application) {
+    return { allowed: false, message: 'No eligible application found for this event' };
+  }
+
+  return { allowed: true, eventTitle: event.title };
+};
 
 /**
  * Setup Socket.IO for real-time chat
@@ -58,28 +96,15 @@ export const setupSocket = (io) => {
           return;
         }
 
-        // Check if there's an application between sender and receiver for this event
-        // Chat is only allowed if status is SHORTLISTED or SELECTED
-        const application = await Application.findOne({
-          where: {
-            student_id: socket.userId,
-            event_id: event_id,
-            status: ['SHORTLISTED', 'SELECTED']
-          }
-        });
+        if (receiver_id === socket.userId) {
+          socket.emit('error', { message: 'Cannot send message to yourself' });
+          return;
+        }
 
-        // Also check if current user is the event organizer
-        const reverseApplication = await Application.findOne({
-          where: {
-            student_id: receiver_id,
-            event_id: event_id,
-            status: ['SHORTLISTED', 'SELECTED']
-          }
-        });
-
-        if (!application && !reverseApplication) {
-          socket.emit('error', { 
-            message: 'Chat is only allowed for shortlisted or selected applications' 
+        const permission = await canUsersChatForEvent(socket.userId, receiver_id, event_id);
+        if (!permission.allowed) {
+          socket.emit('error', {
+            message: permission.message
           });
           return;
         }
@@ -115,7 +140,7 @@ export const setupSocket = (io) => {
         socket.emit('message_sent', chatWithSender);
 
         // Create notification for receiver
-        await notifyNewMessage(receiver_id, socket.userName);
+        await notifyNewMessage(receiver_id, socket.userName, permission.eventTitle, io);
 
       } catch (error) {
         console.error('Send message error:', error);
@@ -144,6 +169,12 @@ export const setupSocket = (io) => {
       try {
         const { other_user_id, event_id, page = 1, limit = 50 } = data;
         const offset = (page - 1) * limit;
+
+        const permission = await canUsersChatForEvent(socket.userId, other_user_id, event_id);
+        if (!permission.allowed) {
+          socket.emit('error', { message: permission.message });
+          return;
+        }
 
         const messages = await Chat.findAll({
           where: {
