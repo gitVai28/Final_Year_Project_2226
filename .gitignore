@@ -47,3 +47,7 @@ build/
 # Temporary files
 tmp/
 temp/
+
+# Uploaded files (keep folder structure, ignore actual uploads)
+uploads/**/*
+!uploads/**/.gitkeep

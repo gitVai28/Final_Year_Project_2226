@@ -8,6 +8,11 @@ import Chat from './chat.model.js';
 import Notification from './notification.model.js';
 import Experience from './experience.model.js';
 import SavedEvent from './saved-event.model.js';
+import Community from './community.model.js';
+import CommunityMember from './community-member.model.js';
+import CommunityPost from './community-post.model.js';
+import PostComment from './post-comment.model.js';
+import PostLike from './post-like.model.js';
 
 // ========== RELATIONSHIPS ==========
 
@@ -52,6 +57,43 @@ Chat.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
 Chat.belongsTo(User, { foreignKey: 'receiver_id', as: 'receiver' });
 Chat.belongsTo(Event, { foreignKey: 'event_id', as: 'event' });
 
+// ========== COMMUNITY RELATIONSHIPS ==========
+
+// Community - User (creator)
+User.hasMany(Community, { foreignKey: 'created_by', as: 'communities', onDelete: 'CASCADE' });
+Community.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
+
+// Community - CommunityMember (Many-to-Many through CommunityMember)
+Community.hasMany(CommunityMember, { foreignKey: 'community_id', as: 'memberships', onDelete: 'CASCADE' });
+CommunityMember.belongsTo(Community, { foreignKey: 'community_id', as: 'community' });
+
+User.hasMany(CommunityMember, { foreignKey: 'user_id', as: 'communityMemberships', onDelete: 'CASCADE' });
+CommunityMember.belongsTo(User, { foreignKey: 'user_id', as: 'member' });
+
+// Community - CommunityPost (One-to-Many)
+Community.hasMany(CommunityPost, { foreignKey: 'community_id', as: 'posts', onDelete: 'CASCADE' });
+CommunityPost.belongsTo(Community, { foreignKey: 'community_id', as: 'community' });
+
+// User - CommunityPost (One-to-Many)
+User.hasMany(CommunityPost, { foreignKey: 'user_id', as: 'communityPosts', onDelete: 'CASCADE' });
+CommunityPost.belongsTo(User, { foreignKey: 'user_id', as: 'author' });
+
+// CommunityPost - PostComment (One-to-Many)
+CommunityPost.hasMany(PostComment, { foreignKey: 'post_id', as: 'comments', onDelete: 'CASCADE' });
+PostComment.belongsTo(CommunityPost, { foreignKey: 'post_id', as: 'post' });
+
+// User - PostComment (One-to-Many)
+User.hasMany(PostComment, { foreignKey: 'user_id', as: 'postComments', onDelete: 'CASCADE' });
+PostComment.belongsTo(User, { foreignKey: 'user_id', as: 'commenter' });
+
+// CommunityPost - PostLike (One-to-Many)
+CommunityPost.hasMany(PostLike, { foreignKey: 'post_id', as: 'likes', onDelete: 'CASCADE' });
+PostLike.belongsTo(CommunityPost, { foreignKey: 'post_id', as: 'post' });
+
+// User - PostLike (One-to-Many)
+User.hasMany(PostLike, { foreignKey: 'user_id', as: 'postLikes', onDelete: 'CASCADE' });
+PostLike.belongsTo(User, { foreignKey: 'user_id', as: 'liker' });
+
 // Export all models
 export {
   sequelize,
@@ -63,5 +105,10 @@ export {
   Chat,
   Notification,
   Experience,
-  SavedEvent
+  SavedEvent,
+  Community,
+  CommunityMember,
+  CommunityPost,
+  PostComment,
+  PostLike
 };

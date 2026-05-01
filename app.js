@@ -14,6 +14,7 @@ import profileRoutes from './src/routes/profile.routes.js';
 import notificationRoutes from './src/routes/notification.routes.js';
 import dashboardRoutes from './src/routes/dashboard.routes.js';
 import chatRoutes from './src/routes/chat.routes.js';
+import communityRoutes from './src/routes/community.routes.js';
 
 // Import middleware
 import { errorHandler, notFound } from './src/middleware/error.middleware.js';
@@ -65,6 +66,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/tools', express.static(path.resolve('public')));
 
+// Serve uploaded community files
+app.use('/uploads', express.static(path.resolve('uploads')));
+
 // Request Logger (Development)
 if (process.env.NODE_ENV === 'development') {
   app.use((req, res, next) => {
@@ -105,6 +109,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/chats', chatRoutes);
+app.use('/api/communities', communityRoutes);
 
 // ========== ERROR HANDLING ==========
 

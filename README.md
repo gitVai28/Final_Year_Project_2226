@@ -31,17 +31,50 @@ A complete backend system for campus event management, student collaboration, an
 
 ## 🛠 Tech Stack
 
-- **Runtime**: Node.js
-- **Framework**: Express.js
-- **Database**: PostgreSQL
-- **ORM**: Sequelize
-- **Authentication**: JWT (Access Token Only)
-- **Password Hashing**: bcrypt
-- **Real-time**: Socket.io
-- **Email**: Nodemailer
-- **Validation**: Joi
-- **Environment**: dotenv
-- **CORS**: cors
+### Backend Architecture
+CampusConnect Backend is built on a modern, scalable technology stack designed for high performance and maintainability:
+
+#### **Core Stack**
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Runtime** | Node.js | JavaScript runtime for server-side execution |
+| **Framework** | Express.js v4.18.2 | Lightweight, flexible web application framework |
+| **Database** | PostgreSQL | Enterprise-grade relational database with advanced features |
+| **ORM** | Sequelize v6.35.2 | Promise-based ORM for database abstraction and migrations |
+
+#### **Security & Authentication**
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **Authentication** | JWT (jsonwebtoken v9.0.2) | Stateless token-based authentication |
+| **Password Security** | bcrypt v5.1.1 | Industry-standard password hashing with salt rounds |
+| **CORS** | cors v2.8.5 | Cross-origin request handling and API security |
+
+#### **Real-time & Communication**
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **Real-time Chat** | Socket.io v4.6.2 | Bidirectional event-based communication |
+| **Email Service** | Nodemailer v6.9.7 | SMTP-based email delivery (OTP, notifications) |
+
+#### **Data Validation & Utilities**
+| Component | Technology | Version | Purpose |
+|-----------|-----------|---------|---------|
+| **Request Validation** | Joi v17.11.0 | Schema validation and sanitization |
+| **Environment Config** | dotenv v16.3.1 | Secure configuration management |
+| **Database Support** | pg v8.11.3 | PostgreSQL client driver |
+| **Data Serialization** | pg-hstore v2.3.4 | PostgreSQL hstore type support |
+| **UUID Generation** | uuid v9.0.1 | Unique identifier generation |
+
+#### **Development Tools**
+| Tool | Purpose |
+|------|---------|
+| **Nodemon v3.0.2** | Auto-restart server on file changes during development |
+
+### Architecture Highlights
+- **Asynchronous Processing**: All operations use async/await for non-blocking I/O
+- **Layered Architecture**: Clean separation of concerns (Controllers → Services → Models)
+- **Middleware Pattern**: Request/response processing pipeline with error handling
+- **RESTful Design**: Standard HTTP methods and status codes
+- **Socket.io Integration**: Real-time bidirectional communication for chat and notifications
 
 ## 📦 Prerequisites
 
